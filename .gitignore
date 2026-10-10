@@ -1,0 +1,13 @@
+prompts.json
+keep-on-top.txt
+error.log
+selftest.txt
+pin-test-result.txt
+*.tmp
+*.user
+*.suo
+.vs/
+bin/
+obj/
+dist/
+*.pdb
