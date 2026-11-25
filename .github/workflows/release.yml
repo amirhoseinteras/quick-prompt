@@ -45,7 +45,13 @@ jobs:
           $ws = New-Object -ComObject WScript.Shell
           $desktopLink = $ws.CreateShortcut((Join-Path $env:QUICKTEXT_DESKTOP_DIR "QuickText.lnk"))
           $startLink = $ws.CreateShortcut((Join-Path (Join-Path $env:QUICKTEXT_STARTMENU_DIR "QuickText") "QuickText.lnk"))
-          if ($desktopLink.TargetPath -ne $installedExe -or $startLink.TargetPath -ne $installedExe) {
+          $desktopTarget = [IO.Path]::GetFullPath($desktopLink.TargetPath)
+          $startTarget = [IO.Path]::GetFullPath($startLink.TargetPath)
+          $expectedTarget = [IO.Path]::GetFullPath($installedExe)
+          Write-Host "Desktop shortcut target: $desktopTarget"
+          Write-Host "Start Menu shortcut target: $startTarget"
+          if (![string]::Equals($desktopTarget, $expectedTarget, [StringComparison]::OrdinalIgnoreCase) -or
+              ![string]::Equals($startTarget, $expectedTarget, [StringComparison]::OrdinalIgnoreCase)) {
             throw "QuickText shortcuts do not target the installed executable."
           }
 
