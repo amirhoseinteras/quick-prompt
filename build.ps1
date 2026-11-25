@@ -90,8 +90,8 @@ TargetName=$setupExe
 FriendlyName=QuickText 4.7.1 Setup
 AppLaunched=cmd.exe /c setup.cmd
 PostInstallCmd=<None>
-AdminQuietInstCmd=
-UserQuietInstCmd=
+AdminQuietInstCmd=cmd.exe /c setup.cmd
+UserQuietInstCmd=cmd.exe /c setup.cmd
 SourceFiles=SourceFiles
 [Strings]
 FILE0="QuickText.exe"
