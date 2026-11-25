@@ -83,6 +83,17 @@ InsideCompressed=1
 CAB_FixedSize=0
 CAB_ResvCodeSigning=0
 RebootMode=N
+InstallPrompt=%InstallPrompt%
+DisplayLicense=%DisplayLicense%
+FinishMessage=%FinishMessage%
+TargetName=%TargetName%
+FriendlyName=%FriendlyName%
+AppLaunched=%AppLaunched%
+PostInstallCmd=%PostInstallCmd%
+AdminQuietInstCmd=%AdminQuietInstCmd%
+UserQuietInstCmd=%UserQuietInstCmd%
+SourceFiles=SourceFiles
+[Strings]
 InstallPrompt=
 DisplayLicense=
 FinishMessage=QuickText 4.7.1 has been installed.
@@ -92,8 +103,6 @@ AppLaunched=cmd.exe /c setup.cmd
 PostInstallCmd=<None>
 AdminQuietInstCmd=cmd.exe /c setup.cmd
 UserQuietInstCmd=cmd.exe /c setup.cmd
-SourceFiles=SourceFiles
-[Strings]
 FILE0="QuickText.exe"
 FILE1="QuickText.ico"
 FILE2="QuickText-pulse.ico"
