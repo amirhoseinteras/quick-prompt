@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+<title id="title">Rich-text editor</title>
+<desc id="desc">Formatting, Persian text, and clickable links</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8faff"/><stop offset="1" stop-color="#e9eff8"/></linearGradient>
+  <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f6f8fc"/></linearGradient>
+</defs>
+<rect width="1200" height="675" rx="34" fill="url(#bg)"/>
+<rect x="36" y="36" width="1128" height="603" rx="28" fill="url(#panel)" stroke="#d6dfec" stroke-width="3"/>
+<rect x="36" y="36" width="1128" height="74" rx="28" fill="#f1f5fb"/>
+<path d="M36 82h1128" stroke="#dce4ef" stroke-width="2"/>
+<circle cx="78" cy="73" r="10" fill="#e58b8b"/><circle cx="111" cy="73" r="10" fill="#e9c36f"/><circle cx="144" cy="73" r="10" fill="#83c59a"/>
+<rect x="90" y="176" width="1020" height="320" rx="24" fill="#f5f8fc" stroke="#d8e1ed" stroke-width="3" stroke-dasharray="12 12"/>
+<text x="600" y="290" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700" fill="#28415f">Rich-text editor</text>
+<text x="600" y="354" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="22" fill="#61758f">Formatting, Persian text, and clickable links</text>
+<text x="600" y="430" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" letter-spacing="4" font-weight="700" fill="#8798ad">SCREENSHOT WILL BE ADDED</text>
+<text x="600" y="574" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#315a8a">QuickText 4.7.1</text>
+</svg>

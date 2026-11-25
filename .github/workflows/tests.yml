@@ -1,0 +1,20 @@
+name: Windows build and tests
+
+on:
+  push:
+    branches:
+      - main
+      - "release/**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Build and run tests
+        shell: pwsh
+        run: .\build.ps1 -RunTests -NoPackage
