@@ -1,0 +1,120 @@
+name: Build and publish QuickText 4.7.1
+
+on:
+  push:
+    branches:
+      - release/quicktext-4.7.1-assets
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build, test, and package QuickText
+        shell: pwsh
+        run: .\build.ps1 -RunTests
+
+      - name: Verify Setup installation and uninstallation
+        shell: pwsh
+        run: |
+          $setup = Join-Path $PWD "dist\QuickText-Setup.exe"
+          if (!(Test-Path $setup)) { throw "QuickText Setup was not created." }
+
+          $testRoot = Join-Path $env:TEMP ("QuickText-release-test-" + $env:GITHUB_RUN_ID)
+          $env:QUICKTEXT_INSTALL_DIR = Join-Path $testRoot "Program"
+          $env:QUICKTEXT_DESKTOP_DIR = Join-Path $testRoot "Desktop"
+          $env:QUICKTEXT_STARTMENU_DIR = Join-Path $testRoot "StartMenu"
+          $env:QUICKTEXT_SKIP_REGISTRY = "1"
+
+          $install = Start-Process -FilePath $setup -ArgumentList @("/Q") -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "QuickText Setup failed with exit code $($install.ExitCode)." }
+
+          $installedExe = Join-Path $env:QUICKTEXT_INSTALL_DIR "QuickText.exe"
+          if (!(Test-Path $installedExe)) { throw "Installed QuickText executable is missing." }
+          if ((Get-Item $installedExe).VersionInfo.ProductVersion -ne "4.7.1") { throw "Installed QuickText version is incorrect." }
+
+          foreach ($file in @("QuickText.ico","QuickText-pulse.ico","QuickText-4.7-logo.png","uninstall.ps1")) {
+            if (!(Test-Path (Join-Path $env:QUICKTEXT_INSTALL_DIR $file))) { throw "Installed file is missing: $file" }
+          }
+
+          $ws = New-Object -ComObject WScript.Shell
+          $desktopLink = $ws.CreateShortcut((Join-Path $env:QUICKTEXT_DESKTOP_DIR "QuickText.lnk"))
+          $startLink = $ws.CreateShortcut((Join-Path (Join-Path $env:QUICKTEXT_STARTMENU_DIR "QuickText") "QuickText.lnk"))
+          if ($desktopLink.TargetPath -ne $installedExe -or $startLink.TargetPath -ne $installedExe) {
+            throw "QuickText shortcuts do not target the installed executable."
+          }
+
+          $uninstaller = Join-Path $env:QUICKTEXT_INSTALL_DIR "uninstall.ps1"
+          $remove = Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-File",$uninstaller) -Wait -PassThru
+          if ($remove.ExitCode -ne 0) { throw "QuickText uninstaller failed with exit code $($remove.ExitCode)." }
+          Start-Sleep -Seconds 3
+          if (Test-Path $env:QUICKTEXT_INSTALL_DIR) { throw "QuickText install directory was not removed." }
+          if (Test-Path (Join-Path $env:QUICKTEXT_DESKTOP_DIR "QuickText.lnk")) { throw "Desktop shortcut was not removed." }
+
+          Remove-Item $testRoot -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item Env:QUICKTEXT_INSTALL_DIR,Env:QUICKTEXT_DESKTOP_DIR,Env:QUICKTEXT_STARTMENU_DIR,Env:QUICKTEXT_SKIP_REGISTRY -ErrorAction SilentlyContinue
+
+      - name: Verify Portable archive and prepare release notes
+        shell: pwsh
+        run: |
+          $portable = Join-Path $PWD "dist\QuickText-Portable.zip"
+          if (!(Test-Path $portable)) { throw "QuickText Portable was not created." }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($portable)
+          $entries = @($zip.Entries | ForEach-Object { $_.FullName })
+          $zip.Dispose()
+
+          $expected = @("QuickText.exe","QuickText.ico","QuickText-pulse.ico","QuickText-4.7-logo.png")
+          if ((($entries | Sort-Object) -join "|") -ne (($expected | Sort-Object) -join "|")) {
+            throw ("Unexpected Portable contents: " + ($entries -join ", "))
+          }
+
+          $portableTest = Join-Path $env:TEMP ("QuickText-portable-test-" + $env:GITHUB_RUN_ID)
+          [System.IO.Compression.ZipFile]::ExtractToDirectory($portable, $portableTest)
+          $portableExe = Join-Path $portableTest "QuickText.exe"
+          $test = Start-Process -FilePath $portableExe -ArgumentList @("--self-test") -Wait -PassThru
+          if ($test.ExitCode -ne 0) { throw "Portable self-test failed with exit code $($test.ExitCode)." }
+          $resultFile = Join-Path $portableTest "selftest.txt"
+          if (!(Test-Path $resultFile) -or (Get-Content $resultFile -Raw) -notmatch "^PASS") {
+            throw "Portable self-test result was not successful."
+          }
+          Remove-Item $portableTest -Recurse -Force
+
+          $setupHash = (Get-FileHash (Join-Path $PWD "dist\QuickText-Setup.exe") -Algorithm SHA256).Hash
+          $portableHash = (Get-FileHash $portable -Algorithm SHA256).Hash
+          @"
+          # QuickText 4.7.1
+
+          Lightweight, offline-first Windows text and prompt manager. This release provides two user-facing downloads only.
+
+          - Setup: per-user installation, Desktop and Start Menu shortcuts, and uninstaller.
+          - Portable: extract the ZIP and run QuickText.exe; no installation is required.
+          - Existing saved prompts remain in %APPDATA%\QuickPrompt.
+          - Windows binaries are unsigned; SmartScreen may display a warning.
+
+          SHA-256
+
+          - QuickText-Setup.exe: $setupHash
+          - QuickText-Portable.zip: $portableHash
+          "@ | Set-Content -Path release-notes.md -Encoding UTF8
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v4.7.1
+          name: QuickText 4.7.1 — Windows
+          target_commitish: release/quicktext-4.7.1-assets
+          body_path: release-notes.md
+          files: |
+            dist/QuickText-Setup.exe
+            dist/QuickText-Portable.zip
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          draft: false
+          prerelease: false
